@@ -1,38 +1,41 @@
 import { useEffect, useState } from "react";
 import api from "../services/api";
-import Card from "../components/Card.jsx";
-import {
-  ResponsiveContainer,
-  PieChart,
-  Pie,
-  Cell,
-  Legend,
-  Tooltip,
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-} from "recharts";
+import Card from "../components/Card";
+import { ResponsiveContainer, PieChart, Pie, Cell, Legend, Tooltip, BarChart, Bar, XAxis, YAxis, CartesianGrid } from "recharts";
+import { inr, pct } from "../utils/format";
 
 export default function Dashboard() {
   const [latest, setLatest] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
 
   useEffect(() => {
+    setLoading(true);
+    setError("");
     api
       .get("/simulate/history")
       .then((res) => {
-        if (res.data.length > 0) {
-          setLatest(res.data[res.data.length - 1]);
+        if (Array.isArray(res.data) && res.data.length > 0) {
+          setLatest(res.data[res.data.length - 1]); // newest run
+        } else {
+          setLatest(null);
         }
       })
-      .catch((err) => console.error(err));
+      .catch(() => setError("Failed to load simulation history"))
+      .finally(() => setLoading(false));
   }, []);
 
+  if (loading) return <Card title="Dashboard"><p>Loading…</p></Card>;
+  if (error) return <Card title="Dashboard"><p className="text-rose-600">{error}</p></Card>;
   if (!latest?.kpis) {
     return (
       <Card title="Dashboard">
-        <p>No simulation data found. Go to Simulation and run one.</p>
+        <div className="flex items-center justify-between">
+          <p className="text-slate-600">No simulation data found yet.</p>
+          <a href="/simulate" className="rounded-md bg-[#188C5B] px-3 py-2 text-white hover:opacity-90">
+            Run Simulation
+          </a>
+        </div>
       </Card>
     );
   }
@@ -41,67 +44,38 @@ export default function Dashboard() {
     { name: "On Time", value: latest.kpis.onTime },
     { name: "Late", value: latest.kpis.late },
   ];
-
   const fuelData = [
-    { name: "Base Fuel", value: latest.kpis.fuelCostBreakdown.baseFuel },
-    {
-      name: "Traffic Surcharge",
-      value: latest.kpis.fuelCostBreakdown.highTrafficSurcharge,
-    },
+    { name: "Base Fuel", value: latest.kpis.fuelCostBreakdown?.baseFuel || 0 },
+    { name: "Traffic Surcharge", value: latest.kpis.fuelCostBreakdown?.highTrafficSurcharge || 0 },
   ];
-
-  const COLORS = ["#10B981", "#EF4444"];
+  const COLORS = ["#10B981", "#EF4444"]; // emerald, rose
 
   return (
-    <div className="w-full max-w-[1440px] mx-auto flex flex-col gap-6">
-      {/* Top KPI cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-1 lg:grid-cols-2 xl:grid-cols-4 gap-4 w-full">
-        <Card title="Total Profit" className="w-full">
-          <p className="text-2xl font-semibold">₹{latest.kpis.totalProfit}</p>
-        </Card>
+    <div className="space-y-6">
+      <h2 className="text-xl font-semibold" style={{ color: "#188C5B" }}>Dashboard</h2>
 
-        <Card title="Efficiency" className="w-full">
-          <p className="text-2xl font-semibold">{latest.kpis.efficiency}%</p>
+      {/* KPIs */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
+        <Card title="Total Profit"><p className="text-2xl font-semibold">{inr(latest.kpis.totalProfit)}</p></Card>
+        <Card title="Efficiency">
+          <p className="text-2xl font-semibold">{pct(latest.kpis.efficiency)}</p>
           <div className="mt-2 h-2 w-full rounded-full bg-slate-200">
-            <div
-              className="h-2 rounded-full bg-emerald-600"
-              style={{ width: `${latest.kpis.efficiency}%` }}
-            />
+            <div className="h-2 rounded-full bg-emerald-600" style={{ width: pct(latest.kpis.efficiency) }} />
           </div>
         </Card>
-
-        <Card title="On-Time" className="w-full">
-          <p className="text-2xl font-semibold text-emerald-600">
-            {latest.kpis.onTime}
-          </p>
-        </Card>
-
-        <Card title="Late" className="w-full">
-          <p className="text-2xl font-semibold text-rose-600">
-            {latest.kpis.late}
-          </p>
-        </Card>
+        <Card title="On‑time"><p className="text-2xl font-semibold text-emerald-600">{latest.kpis.onTime}</p></Card>
+        <Card title="Late"><p className="text-2xl font-semibold text-rose-600">{latest.kpis.late}</p></Card>
       </div>
 
       {/* Charts */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 w-full">
-        <Card title="On-Time vs Late" className="w-full">
+      <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
+        <Card title="On‑Time vs Late">
           <div className="w-full" style={{ height: 360 }}>
             <ResponsiveContainer width="100%" height="100%">
               <PieChart>
-                <Pie
-                  data={onTimeLateData}
-                  dataKey="value"
-                  cx="50%"
-                  cy="50%"
-                  outerRadius="70%"
-                  label
-                >
+                <Pie data={onTimeLateData} dataKey="value" outerRadius="70%" label>
                   {onTimeLateData.map((entry, index) => (
-                    <Cell
-                      key={index}
-                      fill={COLORS[index % COLORS.length]}
-                    />
+                    <Cell key={index} fill={COLORS[index % COLORS.length]} />
                   ))}
                 </Pie>
                 <Legend />
@@ -111,13 +85,10 @@ export default function Dashboard() {
           </div>
         </Card>
 
-        <Card title="Fuel Cost Breakdown" className="w-full">
+        <Card title="Fuel Cost Breakdown">
           <div className="w-full" style={{ height: 360 }}>
             <ResponsiveContainer width="100%" height="100%">
-              <BarChart
-                data={fuelData}
-                margin={{ top: 16, right: 24, left: 8, bottom: 8 }}
-              >
+              <BarChart data={fuelData} margin={{ top: 16, right: 24, left: 8, bottom: 8 }}>
                 <CartesianGrid strokeDasharray="3 3" />
                 <XAxis dataKey="name" />
                 <YAxis />

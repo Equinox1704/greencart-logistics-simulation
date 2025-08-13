@@ -40,6 +40,14 @@ h1 {
   line-height: 1.1;
 }
 
+.nav-link {
+  @apply text-sm font-medium text-white no-underline visited:text-white hover:text-slate-100 transition-colors;
+}
+
+.nav-link2 {
+  @apply text-sm font-semibold rounded-md bg-[#04160E] px-4 py-1.5 text-white shadow-md hover:opacity-90 transition-opacity;
+}
+
 button {
   border-radius: 8px;
   border: 1px solid transparent;

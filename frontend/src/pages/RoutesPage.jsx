@@ -138,13 +138,13 @@ export default function RoutesPage() {
                       <div className="flex gap-2">
                         <button
                           onClick={() => openEdit(r)}
-                          className="rounded-md border px-3 py-1.5 text-sm hover:bg-slate-50"
+                          className="text-sm font-semibold rounded-md bg-[#04160E] px-4 py-1.5 text-white shadow-md hover:opacity-90 transition-opacity"
                         >
                           Edit
                         </button>
                         <button
                           onClick={() => deleteRoute(r._id)}
-                          className="rounded-md border px-3 py-1.5 text-sm text-rose-600 hover:bg-rose-50 border-rose-200"
+                          className="text-sm font-semibold rounded-md bg-[#04160E] px-4 py-1.5 text-white shadow-md hover:opacity-90 transition-opacity"
                         >
                           Delete
                         </button>
@@ -175,7 +175,7 @@ export default function RoutesPage() {
                 value={form.routeId}
                 onChange={(e) => setForm({ ...form, routeId: e.target.value })}
                 required
-                disabled={!!editingId} // keep routeId immutable across edits
+                disabled={!!editingId}
               />
             </div>
 
@@ -227,7 +227,7 @@ export default function RoutesPage() {
             <button
               type="button"
               onClick={() => setModalOpen(false)}
-              className="rounded-md border px-4 py-2 hover:bg-slate-50"
+              className="text-sm font-semibold rounded-md bg-[#04160E] px-4 py-1.5 text-white shadow-md hover:opacity-90 transition-opacity"
             >
               Cancel
             </button>

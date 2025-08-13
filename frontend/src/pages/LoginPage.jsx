@@ -3,7 +3,7 @@ import api from "../services/api";
 import { useNavigate } from "react-router-dom";
 
 export default function LoginPage({ onLogin }) {
-  const [email, setEmail] = useState("manager@greencart.com");
+  const [email, setEmail] = useState("admin@greencart.local");
   const [password, setPassword] = useState("Admin@123");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);

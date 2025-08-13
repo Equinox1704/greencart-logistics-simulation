@@ -153,13 +153,13 @@ export default function OrdersPage() {
                       <div className="flex gap-2">
                         <button
                           onClick={() => openEdit(o)}
-                          className="rounded-md border px-3 py-1.5 text-sm hover:bg-slate-50"
+                          className="text-sm font-semibold rounded-md bg-[#04160E] px-4 py-1.5 text-white shadow-md hover:opacity-90 transition-opacity"
                         >
                           Edit
                         </button>
                         <button
                           onClick={() => deleteOrder(o._id)}
-                          className="rounded-md border px-3 py-1.5 text-sm text-rose-600 hover:bg-rose-50 border-rose-200"
+                          className="text-sm font-semibold rounded-md bg-[#04160E] px-4 py-1.5 text-white shadow-md hover:opacity-90 transition-opacity"
                         >
                           Delete
                         </button>
@@ -243,7 +243,7 @@ export default function OrdersPage() {
             <button
               type="button"
               onClick={() => setModalOpen(false)}
-              className="rounded-md border px-4 py-2 hover:bg-slate-50"
+              className="text-sm font-semibold rounded-md bg-[#04160E] px-4 py-1.5 text-white shadow-md hover:opacity-90 transition-opacity"
             >
               Cancel
             </button>
