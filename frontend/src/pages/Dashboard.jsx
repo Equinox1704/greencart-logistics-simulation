@@ -1,7 +1,19 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import api from "../services/api";
 import Card from "../components/Card";
-import { ResponsiveContainer, PieChart, Pie, Cell, Legend, Tooltip, BarChart, Bar, XAxis, YAxis, CartesianGrid } from "recharts";
+import {
+  ResponsiveContainer,
+  PieChart,
+  Pie,
+  Cell,
+  Legend,
+  Tooltip,
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+} from "recharts";
 import { inr, pct } from "../utils/format";
 
 export default function Dashboard() {
@@ -9,14 +21,15 @@ export default function Dashboard() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
-  useEffect(() => {
+  const fetchLatest = useCallback(() => {
     setLoading(true);
     setError("");
     api
       .get("/simulate/history")
       .then((res) => {
         if (Array.isArray(res.data) && res.data.length > 0) {
-          setLatest(res.data[res.data.length - 1]); // newest run
+          // Newest first (createdAt desc) → pick index 0
+          setLatest(res.data[0]);
         } else {
           setLatest(null);
         }
@@ -25,14 +38,41 @@ export default function Dashboard() {
       .finally(() => setLoading(false));
   }, []);
 
-  if (loading) return <Card title="Dashboard"><p>Loading…</p></Card>;
-  if (error) return <Card title="Dashboard"><p className="text-rose-600">{error}</p></Card>;
+  useEffect(() => {
+    fetchLatest();
+  }, [fetchLatest]);
+
+  if (loading)
+    return (
+      <Card title="Dashboard">
+        <p>Loading…</p>
+      </Card>
+    );
+
+  if (error)
+    return (
+      <Card title="Dashboard">
+        <div className="flex items-center justify-between">
+          <p className="text-rose-600">{error}</p>
+          <button
+            onClick={fetchLatest}
+            className="rounded-md bg-[#188C5B] px-3 py-1.5 text-white hover:opacity-90"
+          >
+            Retry
+          </button>
+        </div>
+      </Card>
+    );
+
   if (!latest?.kpis) {
     return (
       <Card title="Dashboard">
         <div className="flex items-center justify-between">
           <p className="text-slate-600">No simulation data found yet.</p>
-          <a href="/simulate" className="rounded-md bg-[#188C5B] px-3 py-2 text-white hover:opacity-90">
+          <a
+            href="/simulate"
+            className="rounded-md bg-[#188C5B] px-3 py-2 text-white hover:opacity-90"
+          >
             Run Simulation
           </a>
         </div>
@@ -40,31 +80,54 @@ export default function Dashboard() {
     );
   }
 
+  const k = latest.kpis || {};
   const onTimeLateData = [
-    { name: "On Time", value: latest.kpis.onTime },
-    { name: "Late", value: latest.kpis.late },
+    { name: "On Time", value: k.onTime ?? 0 },
+    { name: "Late", value: k.late ?? 0 },
   ];
+  const fuel = k.fuelCostBreakdown || {};
   const fuelData = [
-    { name: "Base Fuel", value: latest.kpis.fuelCostBreakdown?.baseFuel || 0 },
-    { name: "Traffic Surcharge", value: latest.kpis.fuelCostBreakdown?.highTrafficSurcharge || 0 },
+    { name: "Base Fuel", value: fuel.baseFuel ?? 0 },
+    { name: "Traffic Surcharge", value: fuel.highTrafficSurcharge ?? 0 },
   ];
-  const COLORS = ["#10B981", "#EF4444"]; // emerald, rose
+  const COLORS = ["#10B981", "#EF4444"];
 
   return (
     <div className="space-y-6">
-      <h2 className="text-xl font-semibold" style={{ color: "#188C5B" }}>Dashboard</h2>
+      <div className="flex items-center justify-between">
+        <h2 className="text-xl font-semibold" style={{ color: "#188C5B" }}>
+          Dashboard
+        </h2>
+        <button
+          onClick={fetchLatest}
+          className="rounded-md bg-[#188C5B] px-3 py-1.5 text-white hover:opacity-90"
+        >
+          Refresh
+        </button>
+      </div>
 
       {/* KPIs */}
       <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
-        <Card title="Total Profit"><p className="text-2xl font-semibold">{inr(latest.kpis.totalProfit)}</p></Card>
+        <Card title="Total Profit">
+          <p className="text-2xl font-semibold">{inr(k.totalProfit ?? 0)}</p>
+        </Card>
         <Card title="Efficiency">
-          <p className="text-2xl font-semibold">{pct(latest.kpis.efficiency)}</p>
+          <p className="text-2xl font-semibold">{pct(k.efficiency ?? 0)}</p>
           <div className="mt-2 h-2 w-full rounded-full bg-slate-200">
-            <div className="h-2 rounded-full bg-emerald-600" style={{ width: pct(latest.kpis.efficiency) }} />
+            <div
+              className="h-2 rounded-full bg-emerald-600"
+              style={{ width: pct(k.efficiency ?? 0) }}
+            />
           </div>
         </Card>
-        <Card title="On‑time"><p className="text-2xl font-semibold text-emerald-600">{latest.kpis.onTime}</p></Card>
-        <Card title="Late"><p className="text-2xl font-semibold text-rose-600">{latest.kpis.late}</p></Card>
+        <Card title="On‑time">
+          <p className="text-2xl font-semibold text-emerald-600">
+            {k.onTime ?? 0}
+          </p>
+        </Card>
+        <Card title="Late">
+          <p className="text-2xl font-semibold text-rose-600">{k.late ?? 0}</p>
+        </Card>
       </div>
 
       {/* Charts */}
