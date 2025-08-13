@@ -13,14 +13,41 @@ import { verifyToken } from './middlewares/auth.js';
 
 const app = express();
 
-app.use(cors({ origin: process.env.CORS_ORIGIN, credentials: true }));
+// ----------------------
+// CORS configuration
+// ----------------------
+const allowedOrigins = [
+  process.env.CORS_ORIGIN,      // local frontend
+  process.env.CORS_ORIGIN_PROD  // production frontend
+];
+
+app.use(cors({
+  origin: function(origin, callback){
+    // allow requests with no origin (like mobile apps, curl, Postman)
+    if(!origin) return callback(null, true);
+    if(allowedOrigins.includes(origin)){
+      return callback(null, true);
+    } else {
+      return callback(new Error('CORS not allowed'));
+    }
+  },
+  credentials: true
+}));
+
+// ----------------------
+// Middleware
+// ----------------------
 app.use(express.json());
 app.use(cookieParser());
 
+// ----------------------
+// Basic health check
+// ----------------------
 app.get('/', (req, res) => res.json({ message: 'API running...' }));
 
-
+// ----------------------
 // Swagger definition
+// ----------------------
 const swaggerOptions = {
   definition: {
     openapi: '3.0.0',
@@ -31,7 +58,7 @@ const swaggerOptions = {
     },
     servers: [
       { url: 'http://localhost:4000', description: 'Local server' },
-      { url: process.env.API_BASE_URL || '', description: 'Production server' }
+      { url: process.env.API_BASE_URL, description: 'Production server' }
     ],
     components: {
       securitySchemes: {
@@ -43,16 +70,20 @@ const swaggerOptions = {
       }
     }
   },
-  apis: ['./src/routes/*.js'] 
+  apis: ['./src/routes/*.js']
 };
 
 const swaggerSpec = swaggerJSDoc(swaggerOptions);
 app.use('/docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
-// Public
+// ----------------------
+// Public routes
+// ----------------------
 app.use('/auth', authRoutes);
 
-// Protected
+// ----------------------
+// Protected routes
+// ----------------------
 app.use('/drivers', verifyToken, driverRoutes);
 app.use('/routes', verifyToken, routeRoutes);
 app.use('/orders', verifyToken, orderRoutes);
