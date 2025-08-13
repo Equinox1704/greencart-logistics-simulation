@@ -6,6 +6,13 @@ import Driver from '../models/Driver.js';
 const router = express.Router();
 
 /**
+ * @swagger
+ * tags:
+ *   name: Drivers
+ *   description: API for managing drivers
+ */
+
+/**
  * Zod schema for validating Drivers
  */
 const driverSchema = z.object({
@@ -15,8 +22,22 @@ const driverSchema = z.object({
 });
 
 /**
- * @route GET /drivers
- * @desc Get all drivers
+ * @swagger
+ * /drivers:
+ *   get:
+ *     summary: Get all drivers
+ *     tags: [Drivers]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: List of drivers
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 $ref: '#/components/schemas/Driver'
  */
 router.get('/', async (req, res) => {
   try {
@@ -29,8 +50,28 @@ router.get('/', async (req, res) => {
 });
 
 /**
- * @route POST /drivers
- * @desc Create a new driver
+ * @swagger
+ * /drivers:
+ *   post:
+ *     summary: Create a new driver
+ *     tags: [Drivers]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/DriverInput'
+ *     responses:
+ *       201:
+ *         description: Driver created successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Driver'
+ *       400:
+ *         description: Invalid input data
  */
 router.post('/', async (req, res) => {
   try {
@@ -47,8 +88,37 @@ router.post('/', async (req, res) => {
 });
 
 /**
- * @route PUT /drivers/:id
- * @desc Update a driver
+ * @swagger
+ * /drivers/{id}:
+ *   put:
+ *     summary: Update an existing driver
+ *     tags: [Drivers]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - name: id
+ *         in: path
+ *         description: MongoDB ObjectId of the driver
+ *         required: true
+ *         schema:
+ *           type: string
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/DriverInput'
+ *     responses:
+ *       200:
+ *         description: Driver updated successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Driver'
+ *       400:
+ *         description: Invalid ID or input
+ *       404:
+ *         description: Driver not found
  */
 router.put('/:id', async (req, res) => {
   try {
@@ -74,8 +144,34 @@ router.put('/:id', async (req, res) => {
 });
 
 /**
- * @route DELETE /drivers/:id
- * @desc Delete a driver
+ * @swagger
+ * /drivers/{id}:
+ *   delete:
+ *     summary: Delete a driver
+ *     tags: [Drivers]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - name: id
+ *         in: path
+ *         description: MongoDB ObjectId of the driver
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Driver deleted successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *       400:
+ *         description: Invalid driver id
+ *       404:
+ *         description: Driver not found
  */
 router.delete('/:id', async (req, res) => {
   try {
@@ -95,3 +191,40 @@ router.delete('/:id', async (req, res) => {
 });
 
 export default router;
+
+/**
+ * @swagger
+ * components:
+ *   schemas:
+ *     Driver:
+ *       type: object
+ *       properties:
+ *         _id:
+ *           type: string
+ *         name:
+ *           type: string
+ *         currentShiftHours:
+ *           type: number
+ *         past7DayHours:
+ *           type: array
+ *           items:
+ *             type: number
+ *     DriverInput:
+ *       type: object
+ *       required:
+ *         - name
+ *         - currentShiftHours
+ *         - past7DayHours
+ *       properties:
+ *         name:
+ *           type: string
+ *           example: Alice
+ *         currentShiftHours:
+ *           type: number
+ *           example: 0
+ *         past7DayHours:
+ *           type: array
+ *           items:
+ *             type: number
+ *           example: [8, 7, 6, 7, 8, 5, 4]
+ */
