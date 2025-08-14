@@ -6,13 +6,6 @@ import Route from '../models/Route.js';
 
 const router = express.Router();
 
-/**
- * @swagger
- * tags:
- *   name: Orders
- *   description: API for managing delivery orders
- */
-
 const timeRegex = /^([01]\d|2[0-3]):([0-5]\d)$/;
 const orderSchema = z.object({
   orderId: z.number().int().positive(),
@@ -21,29 +14,11 @@ const orderSchema = z.object({
   deliveryTime: z.string().regex(timeRegex)
 });
 
-/**
- * @swagger
- * /orders:
- *   get:
- *     summary: Get all orders
- *     tags: [Orders]
- *     security:
- *       - bearerAuth: []
- */
 router.get('/', async (req, res) => {
   const orders = await Order.find();
   res.json(orders);
 });
 
-/**
- * @swagger
- * /orders:
- *   post:
- *     summary: Create a new order
- *     tags: [Orders]
- *     security:
- *       - bearerAuth: []
- */
 router.post('/', async (req, res) => {
   const parsed = orderSchema.safeParse(req.body);
   if (!parsed.success) return res.status(400).json({ error: parsed.error.errors });
@@ -58,15 +33,6 @@ router.post('/', async (req, res) => {
   res.status(201).json(doc);
 });
 
-/**
- * @swagger
- * /orders/{id}:
- *   put:
- *     summary: Update an order
- *     tags: [Orders]
- *     security:
- *       - bearerAuth: []
- */
 router.put('/:id', async (req, res) => {
   const id = req.params.id?.trim();
   if (!id || !mongoose.isValidObjectId(id)) return res.status(400).json({ error: 'Invalid order id' });
@@ -83,15 +49,6 @@ router.put('/:id', async (req, res) => {
   res.json(updated);
 });
 
-/**
- * @swagger
- * /orders/{id}:
- *   delete:
- *     summary: Delete an order
- *     tags: [Orders]
- *     security:
- *       - bearerAuth: []
- */
 router.delete('/:id', async (req, res) => {
   const id = req.params.id?.trim();
   if (!id || !mongoose.isValidObjectId(id)) return res.status(400).json({ error: 'Invalid order id' });

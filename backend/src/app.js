@@ -1,8 +1,6 @@
 import express from 'express';
 import cors from 'cors';
 import cookieParser from 'cookie-parser';
-import swaggerUi from 'swagger-ui-express';
-import swaggerJSDoc from 'swagger-jsdoc';
 
 import driverRoutes from './routes/driver.routes.js';
 import routeRoutes from './routes/route.routes.js';
@@ -10,7 +8,6 @@ import orderRoutes from './routes/order.routes.js';
 import authRoutes from './routes/auth.routes.js';
 import simulateRoutes from './routes/simulate.routes.js';
 import { verifyToken } from './middlewares/auth.js';
-import { boolean } from 'zod';
 
 const app = express();
 
@@ -20,20 +17,16 @@ const app = express();
 const allowedOrigins = [
   process.env.CORS_ORIGIN,      // local frontend
   process.env.CORS_ORIGIN_PROD  // production frontend
-].filter(boolean);
-
+].filter(Boolean);
 
 app.use(cors({
   origin: function(origin, callback){
-    // allow requests with no origin (like mobile apps, curl, Postman)
-    if(!origin) return callback(null, true);
-    if(allowedOrigins.includes(origin)){
-      return callback(null, true);
-    }
-      return callback(new Error('CORS not allowed')); 
+    if (!origin) return callback(null, true); // allow Postman, curl
+    if (allowedOrigins.includes(origin)) return callback(null, true);
+    return callback(new Error('CORS not allowed'));
   },
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders:['Content-Type', 'Authorization'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
   credentials: true
 }));
 
@@ -45,7 +38,6 @@ app.options('*', cors({
   credentials: true
 }));
 
-
 // ----------------------
 // Middleware
 // ----------------------
@@ -56,37 +48,6 @@ app.use(cookieParser());
 // Basic health check
 // ----------------------
 app.get('/', (req, res) => res.json({ message: 'API running...' }));
-
-// ----------------------
-// Swagger definition
-// ----------------------
-const swaggerOptions = {
-  definition: {
-    openapi: '3.0.0',
-    info: {
-      title: 'GreenCart Logistics API',
-      version: '1.0.0',
-      description: 'API documentation for GreenCart Logistics Simulation Tool'
-    },
-    servers: [
-      { url: 'http://localhost:4000', description: 'Local server' },
-      { url: process.env.API_BASE_URL, description: 'Production server' }
-    ],
-    components: {
-      securitySchemes: {
-        bearerAuth: {
-          type: 'http',
-          scheme: 'bearer',
-          bearerFormat: 'JWT'
-        }
-      }
-    }
-  },
-  apis: ['./routes/*.js']
-};
-
-const swaggerSpec = swaggerJSDoc(swaggerOptions);
-app.use('/docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
 // ----------------------
 // Public routes

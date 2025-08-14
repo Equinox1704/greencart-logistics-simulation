@@ -5,13 +5,6 @@ import Route from '../models/Route.js';
 
 const router = express.Router();
 
-/**
- * @swagger
- * tags:
- *   name: Routes
- *   description: API for managing delivery routes
- */
-
 const routeSchema = z.object({
   routeId: z.number().int().positive(),
   distanceKm: z.number().positive(),
@@ -19,18 +12,6 @@ const routeSchema = z.object({
   baseTimeMin: z.number().positive()
 });
 
-/**
- * @swagger
- * /routes:
- *   get:
- *     summary: Get all routes
- *     tags: [Routes]
- *     security:
- *       - bearerAuth: []
- *     responses:
- *       200:
- *         description: List of routes
- */
 router.get('/', async (req, res) => {
   try {
     const routes = await Route.find();
@@ -40,24 +21,6 @@ router.get('/', async (req, res) => {
   }
 });
 
-/**
- * @swagger
- * /routes:
- *   post:
- *     summary: Create a new route
- *     tags: [Routes]
- *     security:
- *       - bearerAuth: []
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             $ref: '#/components/schemas/RouteInput'
- *     responses:
- *       201:
- *         description: Route created
- */
 router.post('/', async (req, res) => {
   const parsed = routeSchema.safeParse(req.body);
   if (!parsed.success) return res.status(400).json({ error: parsed.error.errors });
@@ -69,21 +32,6 @@ router.post('/', async (req, res) => {
   res.status(201).json(doc);
 });
 
-/**
- * @swagger
- * /routes/{id}:
- *   put:
- *     summary: Update an existing route
- *     tags: [Routes]
- *     security:
- *       - bearerAuth: []
- *     parameters:
- *       - in: path
- *         name: id
- *         required: true
- *         schema:
- *           type: string
- */
 router.put('/:id', async (req, res) => {
   const id = req.params.id?.trim();
   if (!id || !mongoose.isValidObjectId(id)) return res.status(400).json({ error: 'Invalid route id' });
@@ -97,15 +45,6 @@ router.put('/:id', async (req, res) => {
   res.json(updated);
 });
 
-/**
- * @swagger
- * /routes/{id}:
- *   delete:
- *     summary: Delete a route
- *     tags: [Routes]
- *     security:
- *       - bearerAuth: []
- */
 router.delete('/:id', async (req, res) => {
   const id = req.params.id?.trim();
   if (!id || !mongoose.isValidObjectId(id)) return res.status(400).json({ error: 'Invalid route id' });
@@ -117,20 +56,3 @@ router.delete('/:id', async (req, res) => {
 });
 
 export default router;
-
-/**
- * @swagger
- * components:
- *   schemas:
- *     Route:
- *       type: object
- *       properties:
- *         _id: { type: string }
- *         routeId: { type: number }
- *         distanceKm: { type: number }
- *         trafficLevel: { type: string }
- *         baseTimeMin: { type: number }
- *     RouteInput:
- *       type: object
- *       required: [routeId, distanceKm, trafficLevel, baseTimeMin]
- */
