@@ -17,13 +17,13 @@ const app = express();
 // CORS configuration
 // ----------------------
 const allowedOrigins = [
-  process.env.CORS_ORIGIN,      // local frontend
-  process.env.CORS_ORIGIN_PROD  // production frontend
+  process.env.CORS_ORIGIN || 'http://localhost:3000',  // local frontend
+  process.env.CORS_ORIGIN_PROD || 'https://greencart-logistics-simulation.vercel.app' // production frontend
 ];
 
 app.use(cors({
   origin: function(origin, callback){
-    // allow requests with no origin (like mobile apps, curl, Postman)
+    // allow requests with no origin (like Postman, curl)
     if(!origin) return callback(null, true);
     if(allowedOrigins.includes(origin)){
       return callback(null, true);
@@ -31,7 +31,9 @@ app.use(cors({
       return callback(new Error('CORS not allowed'));
     }
   },
-  credentials: true
+  credentials: true,
+  methods: ['GET','POST','PUT','DELETE','OPTIONS'],
+  allowedHeaders: ['Content-Type','Authorization']
 }));
 
 // ----------------------
