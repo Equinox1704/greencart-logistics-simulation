@@ -10,7 +10,7 @@ import orderRoutes from './routes/order.routes.js';
 import authRoutes from './routes/auth.routes.js';
 import simulateRoutes from './routes/simulate.routes.js';
 import { verifyToken } from './middlewares/auth.js';
-import { Boolean } from 'zod';
+import { boolean } from 'zod';
 
 const app = express();
 
@@ -20,7 +20,7 @@ const app = express();
 const allowedOrigins = [
   process.env.CORS_ORIGIN,      // local frontend
   process.env.CORS_ORIGIN_PROD  // production frontend
-].filter(Boolean);
+].filter(boolean);
 
 
 app.use(cors({
