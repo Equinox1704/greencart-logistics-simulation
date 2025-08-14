@@ -10,6 +10,7 @@ import orderRoutes from './routes/order.routes.js';
 import authRoutes from './routes/auth.routes.js';
 import simulateRoutes from './routes/simulate.routes.js';
 import { verifyToken } from './middlewares/auth.js';
+import { Boolean } from 'zod';
 
 const app = express();
 
@@ -19,7 +20,8 @@ const app = express();
 const allowedOrigins = [
   process.env.CORS_ORIGIN,      // local frontend
   process.env.CORS_ORIGIN_PROD  // production frontend
-];
+].filter(Boolean);
+
 
 app.use(cors({
   origin: function(origin, callback){
@@ -27,12 +29,22 @@ app.use(cors({
     if(!origin) return callback(null, true);
     if(allowedOrigins.includes(origin)){
       return callback(null, true);
-    } else {
-      return callback(new Error('CORS not allowed'));
     }
+      return callback(new Error('CORS not allowed')); 
   },
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders:['Content-Type', 'Authorization'],
   credentials: true
 }));
+
+// Handle OPTIONS preflight for all routes
+app.options('*', cors({
+  origin: allowedOrigins,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+  credentials: true
+}));
+
 
 // ----------------------
 // Middleware
@@ -70,7 +82,7 @@ const swaggerOptions = {
       }
     }
   },
-  apis: ['./src/routes/*.js']
+  apis: ['./routes/*.js']
 };
 
 const swaggerSpec = swaggerJSDoc(swaggerOptions);
